@@ -1,3 +1,6 @@
+// Load environment variables first, before any other imports
+require('dotenv').config();
+
 import createError from 'http-errors';
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';

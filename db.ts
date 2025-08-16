@@ -3,15 +3,22 @@ import { Pool, PoolConfig } from 'pg';
 // Environment variables are loaded in app.ts
 
 // Database configuration
-const dbConfig: PoolConfig = {
-  host: process.env.DB_HOST || 'localhost',
+// Support both DATABASE_URL and individual environment variables
+const dbConfig: PoolConfig = process.env.DATABASE_URL ? {
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+} : {
+  host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'my_movies_db',
-  user: process.env.DB_USER || process.env.USER,
-  password: process.env.DB_PASSWORD || '',
-  max: 20, // Maximum number of connections in the pool
-  idleTimeoutMillis: 30000, // How long a client is allowed to remain idle
-  connectionTimeoutMillis: 2000, // How long to wait for a connection
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 };
 
 // Create a connection pool (lazy initialization)

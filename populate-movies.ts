@@ -1,3 +1,6 @@
+// Load environment variables first, before any other imports
+require('dotenv').config();
+
 import axios from 'axios';
 import getPool from './db';
 
