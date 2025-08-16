@@ -18,8 +18,14 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 // Configure CORS to allow requests from frontend
+const allowedOrigins: string[] = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []) // Add env var if defined
+];
+
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173'], // Allow both React dev server ports
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
