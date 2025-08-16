@@ -138,12 +138,9 @@ const createMoviesController = () => {
                     return res.status(400).json({ error: 'Username is required' });
                 }
                 
-                const added = await moviesService.addToFavourites(username, movieId);
+                await moviesService.addToFavourites(username, movieId);
                 
-                if (!added) {
-                    return res.status(409).json({ error: 'Movie already in favorites' });
-                }
-                
+                // Always return success - if it was already favorited, that's fine
                 res.json({ message: 'Movie added to favorites' });
             } catch (err: any) {
                 res.status(500).json({ error: err.message });

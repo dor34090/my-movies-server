@@ -145,32 +145,34 @@ export class MoviesService {
 
     /**
      * Add a movie to user's favorites
+     * Uses ON CONFLICT DO NOTHING to gracefully handle duplicates
      */
     public async addToFavourites(username: string, movieId: number): Promise<boolean> {
         const userId = await this.userService.getOrCreateUser(username);
         
-        try {
-            await query(
-                `INSERT INTO user_favourites (user_id, movie_id) 
-                 VALUES ($1, $2)`,
-                [userId, movieId]
-            );
-            
-            // Log the favorite action
-            await query(
-                `INSERT INTO user_actions (user_id, movie_id, action) 
-                 VALUES ($1, $2, $3)`,
-                [userId, movieId, UserActionType.FAVORITE]
-            );
-            
-            return true;
-        } catch (error: any) {
-            // Handle duplicate favorite (unique constraint violation)
-            if (error.code === '23505') {
-                return false; // Already favorited
-            }
-            throw error;
+        // Check if already favorited to avoid duplicate action logs
+        const alreadyFavorited = await this.isMovieFavorited(username, movieId);
+        
+        if (alreadyFavorited) {
+            return true; // Already favorited, desired state achieved
         }
+        
+        // Use ON CONFLICT DO NOTHING to gracefully handle race conditions
+        await query(
+            `INSERT INTO user_favourites (user_id, movie_id) 
+             VALUES ($1, $2)
+             ON CONFLICT (user_id, movie_id) DO NOTHING`,
+            [userId, movieId]
+        );
+        
+        // Log the favorite action only if it wasn't already favorited
+        await query(
+            `INSERT INTO user_actions (user_id, movie_id, action) 
+             VALUES ($1, $2, $3)`,
+            [userId, movieId, UserActionType.FAVORITE]
+        );
+        
+        return true;
     }
 
     /**
